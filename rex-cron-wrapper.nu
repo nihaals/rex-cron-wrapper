@@ -39,14 +39,14 @@ def ensure-session [label: string]: nothing -> string {
 # Run the inner script in a keep-open terminal block in a new window of the
 # session.
 def start-backup [session_id: string, command: string]: nothing -> record<block_id: string, window_id: string> {
-  let stamp = date now | format date "%F %R"
+  let stamp = date now | date to-timezone utc | format date "%F %R"
 
   let created = rex run -s $session_id --json --keep-open --focus=false -- $command
   | from json
 
   # `rex run`'s --label names the block
   rex api call -s $session_id session.set_window_label (
-    { window_id: $created.window_id, label: $"($window_label_prefix) ($stamp)" } | to json --raw
+    { window_id: $created.window_id, label: $"($window_label_prefix) ($stamp) UTC" } | to json --raw
   ) | ignore
 
   {
